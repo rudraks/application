@@ -1,0 +1,10 @@
+{
+    "name": "rudrax/application",
+    "type": "library",
+    "description": "Script to deploy Rudrax on FTP server;",
+    "keywords": ["rudra", "API", "controller","smarty"],
+    "license": "MIT",
+    
+    "require": {
+    }
+}
