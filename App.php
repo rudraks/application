@@ -138,10 +138,9 @@ class App {
 
 	function delete_dir($path){
 		if (is_dir($path) === true){
-			$files = array_diff(scandir($path), array('.', '..'));
+			$files = array_diff(scandir($path), array('.', '..','.gitignore'));
 
 			foreach ($files as $file){
-				
 				$this->delete_dir(realpath($path) . '/' . $file);
 			}
 
