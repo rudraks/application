@@ -27,12 +27,12 @@ class App {
 			$server="production";
 		}
 		
-		echo "Script Dir :".$prog_dir."\n";
-		echo "##### config #############";
+		$this->println("Script Dir :".$prog_dir);
+		$this->drawLine();
 		foreach ($config[$server] as $key=>$value){
 			echo "[".$key."] = ".$value."\n";
 		}
-		echo "##########################";
+		$this->drawLine();
 
 		if($password==null){
 			echo "Enter Password\n";
@@ -52,7 +52,7 @@ class App {
 		//Write Config File for main project
 		$this->write_ini_file($config, "build/deploy.ini", true);
 
-		echo "Executing::"."php ".$prog_dir."git-deploy build/deploy.ini\n";
+		$this->println("Executing::"."php ".$prog_dir."git-deploy build/deploy.ini");
 		
 		passthru("php ".$prog_dir."/git-deploy build/deploy.ini");
 
@@ -61,26 +61,31 @@ class App {
 		unset($config[$server]["ignore_files"]);
 		
 		
+	
+		if(!mkdir("build/deploy",0777)){
+			$this->println("driectory problem");
+		}
 		//Upload Libraries..
 		chdir("lib");
-
 		$vendors = array_filter(glob('*'), 'is_dir');
+		$this->println("Libraries to upload:");
+		print_r($vendors);
+		
 		$host_path = $config[$server]['path'];
 		foreach ($vendors as $vendor){
 			if($vendor!="composer"){
+				$this->drawLine();
 				chdir($vendor);
 				$libs = array_filter(glob('*'), 'is_dir');
 				foreach ($libs as $lib){
 					chdir($lib);
-					echo $vendor."/".$lib."\n";
-					if(mkdir("../../../build/deploy",0777)){
-					}
-					$lib_ini_file = "../../../build/deploy/".$vender."-".$lib.".ini";
+					$this->println("DIR::".getcwd());
+					$lib_ini_file = "../../../build/deploy/".$vendor."-".$lib.".ini";
 					$config[$server]['path'] = $host_path."lib/".$vendor."/".$lib;
 					$config[$server]['pass'] = $password;
 					$this->write_ini_file($config, $lib_ini_file, true);
 					$this->create_remote($config[$server]);
-					echo "Executing:"."php ".$prog_dir."git-deploy ".$lib_ini_file."\n";
+					$this->println("Executing:"."php ".$prog_dir."git-deploy ".$lib_ini_file);
 					passthru("php ".$prog_dir."/git-deploy ".$lib_ini_file);
 					chdir("..");
 				}
@@ -90,6 +95,12 @@ class App {
 		$this->delete_dir("build");
 	}
 	
+	function drawLine(){
+		echo "\n###################################################################################################\n";
+	}
+	function println($msg){
+		echo "\n".$msg."\n";
+	}
 
 	function create_remote($config){
 
@@ -99,10 +110,10 @@ class App {
 		$login_result = ftp_login($conn_id, $config['user'], $config['pass']);
 
 		// try to create the directory $dir
-		if (ftp_mkdir($conn_id, $config['path'])) {
-			echo "successfully created $dir\n";
-		} else {
-			echo "There was a problem while creating $dir\n";
+		try{
+			ftp_mkdir($conn_id, $config['path']);
+		} catch (Exception $e){
+			echo "There was a problem while creating ".$config['path']."\n";
 		}
 		// close the connection
 		ftp_close($conn_id);
