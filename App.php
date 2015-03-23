@@ -2,13 +2,26 @@
 
 class App {
 
-
+	function push($server="production",$password = null){
+		$config = parse_ini_file("deploy.ini",true);
+		$prog_dir = realpath(dirname(__FILE__))."/";
+		if(empty($server)){
+			$server="production";
+		}
+		echo "Script Dir :".$prog_dir."\n";
+		echo "##### config #############";
+		foreach ($config[$server] as $key=>$value){
+			echo "[".$key."] = ".$value."\n";
+		}
+		echo "##########################";
+		
+		passthru("php ".$prog_dir."/git-deploy deploy.ini");
+	}
 
 	function  deploy ($server="production",$password = null){
 
 		$config = parse_ini_file("deploy.ini",true);
 		$prog_dir = realpath(dirname(__FILE__))."/";
-
 		
 		if(empty($server)){
 			$server="production";
@@ -60,7 +73,9 @@ class App {
 				foreach ($libs as $lib){
 					chdir($lib);
 					echo $vendor."/".$lib."\n";
-					$lib_ini_file = "../../../build/data-".$vender."-".$lib.".ini";
+					if(mkdir("../../../build/deploy",0777)){
+					}
+					$lib_ini_file = "../../../build/deploy/".$vender."-".$lib.".ini";
 					$config[$server]['path'] = $host_path."lib/".$vendor."/".$lib;
 					$config[$server]['pass'] = $password;
 					$this->write_ini_file($config, $lib_ini_file, true);
