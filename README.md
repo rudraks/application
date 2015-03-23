@@ -1,5 +1,5 @@
 ## Create a php file in your project root
-and place this project in your project
+and place this application folder in your project
 
 #### FOR Normal Project
 --deploy.php
@@ -20,7 +20,10 @@ $app->push($server,$password);
 $ php deploy.php production
 
 
-### For RudraX project
+### For RudraX project - 
+Note:- if you are using composer then you dont need to download it manually, it will automatically get downloaded in your verndor folder, but still you need to write deploy.php pointing to your this script_folder
+
+Here is an example with RudraX Structured Project.
 
 --deploy.php
 ``
