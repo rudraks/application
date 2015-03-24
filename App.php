@@ -42,8 +42,8 @@ class App {
 		}
 		
 		//Set Default Configs for main directory
-		$config[$server]["clean_directories"] = 'build';
-		$config[$server]["ignore_files"] = 'lib/*';
+		$config[$server]["clean_directories"] = array('build');
+		$config[$server]["ignore_files"] = array('lib/*','build/*');
 		$config[$server]["pass"] =$password;
 		
 		//Empty build folder
@@ -57,11 +57,8 @@ class App {
 
 		$this->println("Executing::"."php ".$prog_dir."git-deploy build/deploy.ini");
 		
-		try{
-			passthru("php ".$prog_dir."/git-deploy build/deploy/deploy.ini");
-		} catch (Exception $e){
-			$this->println("ERROR::Executin");
-		}
+		passthru("php ".$prog_dir."/git-deploy build/deploy/deploy.ini");
+		unlink("build/deploy/deploy.ini");
 
 		//No need o delete lib and buld in library cud be harmful
 		unset($config[$server]["clean_directories"]);
@@ -90,6 +87,7 @@ class App {
 						$this->create_remote($config[$server]);
 						$this->println("Executing:"."php ".$prog_dir."git-deploy ".$lib_ini_file);
 						passthru("php ".$prog_dir."/git-deploy ".$lib_ini_file);
+						unlink($lib_ini_file);
 						chdir("..");
 					}
 				}
@@ -174,7 +172,7 @@ class App {
 				$this->delete_dir(realpath($path) . '/' . $file);
 			}
 
-			return rmdir($path);
+			return;// rmdir($path);
 		}
 
 		else if (is_file($path) === true)
