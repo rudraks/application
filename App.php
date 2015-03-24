@@ -35,7 +35,7 @@ class App {
 		$this->drawLine();
 
 		if($password==null){
-			echo "Enter Password\n";
+			$this->println("Enter Password");
 			$stdin = fopen('php://stdin', 'r');
 			$password = trim(fgets($stdin));
 			fclose($stdin);
@@ -48,23 +48,25 @@ class App {
 		
 		//Empty build folder
 		$this->delete_dir("build");
+		if(!mkdir("build/deploy",0777)){
+			$this->println("driectory problem");
+		}
 		
 		//Write Config File for main project
-		$this->write_ini_file($config, "build/deploy.ini", true);
+		$this->write_ini_file($config, "build/deploy/deploy.ini", true);
 
 		$this->println("Executing::"."php ".$prog_dir."git-deploy build/deploy.ini");
 		
-		passthru("php ".$prog_dir."/git-deploy build/deploy.ini");
+		try{
+			passthru("php ".$prog_dir."/git-deploy build/deploy/deploy.ini");
+		} catch (Exception $e){
+			$this->println("ERROR::Executin");
+		}
 
 		//No need o delete lib and buld in library cud be harmful
 		unset($config[$server]["clean_directories"]);
 		unset($config[$server]["ignore_files"]);
-		
-		
-	
-		if(!mkdir("build/deploy",0777)){
-			$this->println("driectory problem");
-		}
+
 		//Upload Libraries..
 		chdir("lib");
 		$vendors = array_filter(glob('*'), 'is_dir');
@@ -74,20 +76,22 @@ class App {
 		$host_path = $config[$server]['path'];
 		foreach ($vendors as $vendor){
 			if($vendor!="composer"){
-				$this->drawLine();
 				chdir($vendor);
 				$libs = array_filter(glob('*'), 'is_dir');
 				foreach ($libs as $lib){
-					chdir($lib);
-					$this->println("DIR::".getcwd());
-					$lib_ini_file = "../../../build/deploy/".$vendor."-".$lib.".ini";
-					$config[$server]['path'] = $host_path."lib/".$vendor."/".$lib;
-					$config[$server]['pass'] = $password;
-					$this->write_ini_file($config, $lib_ini_file, true);
-					$this->create_remote($config[$server]);
-					$this->println("Executing:"."php ".$prog_dir."git-deploy ".$lib_ini_file);
-					passthru("php ".$prog_dir."/git-deploy ".$lib_ini_file);
-					chdir("..");
+					if(!($vendor != "rudrax" && $lib != "application")){
+						$this->drawLine();
+						chdir($lib);
+						$this->println("DIR::".getcwd());
+						$lib_ini_file = "../../../build/deploy/".$vendor."-".$lib.".ini";
+						$config[$server]['path'] = $host_path."lib/".$vendor."/".$lib;
+						$config[$server]['pass'] = $password;
+						$this->write_ini_file($config, $lib_ini_file, true);
+						$this->create_remote($config[$server]);
+						$this->println("Executing:"."php ".$prog_dir."git-deploy ".$lib_ini_file);
+						passthru("php ".$prog_dir."/git-deploy ".$lib_ini_file);
+						chdir("..");
+					}
 				}
 				chdir("..");
 			}
@@ -182,3 +186,47 @@ class App {
 		return false;
 	}
 }
+function process_error_backtrace($errno, $errstr, $errfile, $errline, $errcontext) {
+	if(!(error_reporting() & $errno))
+		return;
+	switch($errno) {
+		case E_WARNING      :
+		case E_USER_WARNING :
+		case E_STRICT       :
+		case E_NOTICE       :
+		case E_USER_NOTICE  :
+			$type = 'warning';
+			$fatal = false;
+			break;
+		default             :
+			$type = 'fatal error';
+			$fatal = true;
+			break;
+	}
+	$trace = array_reverse(debug_backtrace());
+	array_pop($trace);
+	if(php_sapi_name() == 'cli') {
+		echo 'Backtrace from ' . $type . ' \'' . $errstr . '\' at ' . $errfile . ' ' . $errline . ':' . "\n";
+		foreach($trace as $item)
+			echo '  ' . (isset($item['file']) ? $item['file'] : '<unknown file>') . ' ' . (isset($item['line']) ? $item['line'] : '<unknown line>') . ' calling ' . $item['function'] . '()' . "\n";
+	} else {
+		echo '<p class="error_backtrace">' . "\n";
+		echo '  Backtrace from ' . $type . ' \'' . $errstr . '\' at ' . $errfile . ' ' . $errline . ':' . "\n";
+		echo '  <ol>' . "\n";
+		foreach($trace as $item)
+			echo '    <li>' . (isset($item['file']) ? $item['file'] : '<unknown file>') . ' ' . (isset($item['line']) ? $item['line'] : '<unknown line>') . ' calling ' . $item['function'] . '()</li>' . "\n";
+		echo '  </ol>' . "\n";
+		echo '</p>' . "\n";
+	}
+	if(ini_get('log_errors')) {
+		$items = array();
+		foreach($trace as $item)
+			$items[] = (isset($item['file']) ? $item['file'] : '<unknown file>') . ' ' . (isset($item['line']) ? $item['line'] : '<unknown line>') . ' calling ' . $item['function'] . '()';
+		$message = 'Backtrace from ' . $type . ' \'' . $errstr . '\' at ' . $errfile . ' ' . $errline . ': ' . join(' | ', $items);
+		error_log($message);
+	}
+	if($fatal)
+		exit(1);
+}
+
+set_error_handler('process_error_backtrace');
