@@ -74,9 +74,11 @@ class App {
 		foreach ($vendors as $vendor){
 			if($vendor!="composer"){
 				chdir($vendor);
+				$this->println("Directory:".$vendor);
 				$libs = array_filter(glob('*'), 'is_dir');
+				$this->println("Directory:LIST".implode(",", $libs));
 				foreach ($libs as $lib){
-					if(!($vendor != "rudrax" && $lib != "application")){
+					if(!($vendor == "rudrax" && $lib == "application")){
 						$this->drawLine();
 						chdir($lib);
 						$this->println("DIR::".getcwd());
