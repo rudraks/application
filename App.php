@@ -47,7 +47,7 @@ class App {
 		$config[$server]["pass"] =$password;
 		
 		//Empty build folder
-		$this->delete_dir("build");
+		//$this->delete_dir("build");
 		if(!mkdir("build/deploy",0777)){
 			$this->println("driectory problem");
 		}
