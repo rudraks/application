@@ -1,6 +1,7 @@
 <?php
+
 class App {
-	function push($server = "production", $password = null, $skipMain = false) {
+	function push($server = "production", $password = null) {
 		$config = parse_ini_file ( "deploy.ini", true );
 		$prog_dir = realpath ( dirname ( __FILE__ ) ) . "/";
 		if (empty ( $server )) {
@@ -15,7 +16,7 @@ class App {
 		
 		passthru ( "php " . $prog_dir . "/git-deploy deploy.ini" );
 	}
-	function deploy($server = "production", $password = null, $skipMain = false) {
+	function deploy($server = "production", $password = null) {
 		$config = parse_ini_file ( "deploy.ini", true );
 		$prog_dir = realpath ( dirname ( __FILE__ ) ) . "/";
 		
@@ -25,12 +26,14 @@ class App {
 		
 		$this->println ( "Script Dir :" . $prog_dir );
 		$this->drawLine ();
-		
-		print_r ( $config [$server] );
-		
+		foreach ( $config [$server] as $key => $value ) {
+			echo "[" . $key . "] = " . $value . "\n";
+		}
 		$this->drawLine ();
 		
-		if ($password == null) {
+		if ($password == null && isset ( $config [$server] ["pass"] )) {
+			$password = $config [$server] ["pass"];
+		} else if ($password == null) {
 			$this->println ( "Enter Password" );
 			$stdin = fopen ( 'php://stdin', 'r' );
 			$password = trim ( fgets ( $stdin ) );
@@ -38,16 +41,15 @@ class App {
 		}
 		
 		// Set Default Configs for main directory
-		// $config[$server]["clean_directories"] = array('build');
-		
-		if (! isset ( $config [$server] ["ignore_files"] )) {
-			$config [$server] ["ignore_files"] = array ();
-		}
-		$config [$server] ["ignore_files"] [] = 'lib/*';
-		$config [$server] ["ignore_files"] [] = 'build/*';
-		$config [$server] ["ignore_files"] [] = 'deploy.ini';
-		
+		$config [$server] ["clean_directories"] = array (
+				'build' 
+		);
+		$config [$server] ["ignore_files"] = array (
+				'lib/*',
+				'build/*' 
+		);
 		$config [$server] ["pass"] = $password;
+		
 		// Empty build folder
 		// $this->delete_dir("build");
 		if (! mkdir ( "build/deploy", 0777 )) {
@@ -59,9 +61,7 @@ class App {
 		
 		$this->println ( "Executing::" . "php " . $prog_dir . "git-deploy build/deploy.ini" );
 		
-		if ($skipMain == false) {
-			passthru ( "php " . $prog_dir . "/git-deploy build/deploy/deploy.ini" );
-		}
+		passthru ( "php " . $prog_dir . "/git-deploy build/deploy/deploy.ini" );
 		unlink ( "build/deploy/deploy.ini" );
 		
 		// No need o delete lib and buld in library cud be harmful
@@ -70,7 +70,9 @@ class App {
 		
 		// Upload Libraries..
 		chdir ( "lib" );
-		$this->create_remote ($config [$server], "lib" );
+		$vendors = array_filter ( glob ( '*' ), 'is_dir' );
+		$this->println ( "Libraries to upload:" );
+		print_r ( $vendors );
 		
 		try {
 			$vendors = array_filter ( glob ( '*' ), 'is_dir' );
@@ -128,11 +130,11 @@ class App {
 			$folders = explode ( "/", $mypath );
 			$new_path = "";
 			foreach ( $folders as $key => $folder ) {
-				$new_path = $new_path.$folder;
+				$new_path = $new_path . $folder;
 				if (! ftp_mkdir ( $conn_id, $new_path )) {
 					$this->println ( "There was a problem while creating " . $new_path );
 				}
-				$new_path = $new_path."/";
+				$new_path = $new_path . "/";
 			}
 		} catch ( Exception $e ) {
 			$this->println ( "There was a problem while creating " . $mypath );
