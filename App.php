@@ -1,5 +1,9 @@
 <?php
 
+include_once 'tools/src/Helpers.php';
+
+use Brunodebarros\Gitdeploy\Helpers;
+
 class App {
 	function push($server = "production", $password = null) {
 		$config = parse_ini_file ( "deploy.ini", true );
@@ -24,7 +28,7 @@ class App {
 			$server = "production";
 		}
 		
-		$this->println ( "Script Dir :" . $prog_dir );
+		$this->println ( "ScriptDir: " . $prog_dir );
 		$this->drawLine ();
 		foreach ( $config [$server] as $key => $value ) {
 			echo "[" . $key . "] = " . $value . "\n";
@@ -53,13 +57,13 @@ class App {
 		// Empty build folder
 		// $this->delete_dir("build");
 		if (! mkdir ( "build/deploy", 0777 )) {
-			$this->println ( "driectory problem" );
+			$this->println ( "Error: driectory problem, while creating build/deploy" );
 		}
 		
 		// Write Config File for main project
 		$this->write_ini_file ( $config, "build/deploy/deploy.ini", true );
 		
-		$this->println ( "Executing::" . "php " . $prog_dir . "git-deploy build/deploy.ini" );
+		$this->println ( "Executing: " . "php " . $prog_dir . "git-deploy build/deploy.ini" );
 		
 		passthru ( "php " . $prog_dir . "/git-deploy build/deploy/deploy.ini" );
 		unlink ( "build/deploy/deploy.ini" );
@@ -83,20 +87,20 @@ class App {
 			foreach ( $vendors as $vendor ) {
 				if ($vendor != "composer") {
 					chdir ( $vendor );
-					$this->println ( "Directory:" . $vendor );
+					$this->println ( "Directory: " . $vendor );
 					$libs = array_filter ( glob ( '*' ), 'is_dir' );
-					$this->println ( "Directory:LIST" . implode ( ",", $libs ) );
+					$this->println ( "Directorirs: " . implode ( ",", $libs ) );
 					foreach ( $libs as $lib ) {
 						if (! ($vendor == "rudrax" && $lib == "application")) {
 							$this->drawLine ();
 							chdir ( $lib );
-							$this->println ( "DIR::" . getcwd () );
+							$this->println ( "\nPackage: " . $vendor . "/" . $lib );
 							$lib_ini_file = "../../../build/deploy/" . $vendor . "-" . $lib . ".ini";
 							$config [$server] ['path'] = $host_path . "lib/" . $vendor . "/" . $lib;
 							$config [$server] ['pass'] = $password;
 							$this->write_ini_file ( $config, $lib_ini_file, true );
 							$this->create_remote ( $config [$server] );
-							$this->println ( "Executing:" . "php " . $prog_dir . "git-deploy " . $lib_ini_file );
+							$this->println ( "Executing: " . "php " . $prog_dir . "git-deploy " . $lib_ini_file );
 							passthru ( "php " . $prog_dir . "/git-deploy " . $lib_ini_file );
 							unlink ( $lib_ini_file );
 							chdir ( ".." );
@@ -107,17 +111,17 @@ class App {
 			}
 			$this->delete_dir ( "build" );
 		} catch ( Exception $e ) {
-			$this->println ( "Some error in library uploaded" );
+			$this->println ( "Error: Some error in libraries uploaded" );
 		}
 	}
 	function drawLine() {
 		echo "\n###################################################################################################\n";
 	}
 	function println($msg) {
-		echo "\n" . $msg . "\n";
+		Helpers::logmessage($msg);
 	}
 	function create_remote($config, $path = null) {
-		$this->println ( "trying to createdirectory : " . $config ['path'] );
+		$this->println ( "Creating Remote : " . $config ['path'] );
 		// set up basic connection
 		$conn_id = ftp_connect ( $config ['host'] );
 		// login with username and password
@@ -132,12 +136,12 @@ class App {
 			foreach ( $folders as $key => $folder ) {
 				$new_path = $new_path . $folder;
 				if (! ftp_mkdir ( $conn_id, $new_path )) {
-					$this->println ( "There was a problem while creating " . $new_path );
+					$this->println ( "Error: There might be problem while creating " . $new_path );
 				}
 				$new_path = $new_path . "/";
 			}
 		} catch ( Exception $e ) {
-			$this->println ( "There was a problem while creating " . $mypath );
+			$this->println ( "Error: There was a problem while creating " . $mypath );
 		}
 		// close the connection
 		ftp_close ( $conn_id );
