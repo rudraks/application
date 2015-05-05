@@ -59,7 +59,7 @@ class App {
 		
 		$this->println ( "Executing::" . "php " . $prog_dir . "git-deploy build/deploy.ini" );
 		
-		if ($skipMain != false) {
+		if ($skipMain == false) {
 			passthru ( "php " . $prog_dir . "/git-deploy build/deploy/deploy.ini" );
 		}
 		unlink ( "build/deploy/deploy.ini" );
@@ -70,7 +70,7 @@ class App {
 		
 		// Upload Libraries..
 		chdir ( "lib" );
-		$this->create_remote ( "lib" );
+		$this->create_remote ($config [$server], "lib" );
 		
 		try {
 			$vendors = array_filter ( glob ( '*' ), 'is_dir' );
