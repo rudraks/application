@@ -28,17 +28,17 @@ class App {
 			$server = "production";
 		}
 		
-		$this->println ( "ScriptDir: " . $prog_dir );
-		$this->drawLine ();
+		self::println ( "ScriptDir: " . $prog_dir );
+		self::drawLine ();
 		foreach ( $config [$server] as $key => $value ) {
 			echo "[" . $key . "] = " . $value . "\n";
 		}
-		$this->drawLine ();
+		self::drawLine ();
 		
 		if ($password == null && isset ( $config [$server] ["pass"] )) {
 			$password = $config [$server] ["pass"];
 		} else if ($password == null) {
-			$this->println ( "Enter Password" );
+			self::println ( "Enter Password" );
 			$stdin = fopen ( 'php://stdin', 'r' );
 			$password = trim ( fgets ( $stdin ) );
 			fclose ( $stdin );
@@ -57,13 +57,13 @@ class App {
 		// Empty build folder
 		// $this->delete_dir("build");
 		if (! mkdir ( "build/deploy", 0777 )) {
-			$this->println ( "Error: driectory problem, while creating build/deploy" );
+			self::println ( "Error: driectory problem, while creating build/deploy" );
 		}
 		
 		// Write Config File for main project
 		$this->write_ini_file ( $config, "build/deploy/deploy.ini", true );
 		
-		$this->println ( "Executing: " . "php " . $prog_dir . "git-deploy build/deploy.ini" );
+		self::println ( "Executing: " . "php " . $prog_dir . "git-deploy build/deploy.ini" );
 		
 		passthru ( "php " . $prog_dir . "/git-deploy build/deploy/deploy.ini" );
 		unlink ( "build/deploy/deploy.ini" );
@@ -75,32 +75,32 @@ class App {
 		// Upload Libraries..
 		chdir ( "lib" );
 		$vendors = array_filter ( glob ( '*' ), 'is_dir' );
-		$this->println ( "Libraries to upload:" );
+		self::println ( "Libraries to upload:" );
 		print_r ( $vendors );
 		
 		try {
 			$vendors = array_filter ( glob ( '*' ), 'is_dir' );
-			$this->println ( "Libraries to upload:" );
+			self::println ( "Libraries to upload:" );
 			print_r ( $vendors );
 			
 			$host_path = $config [$server] ['path'];
 			foreach ( $vendors as $vendor ) {
 				if ($vendor != "composer") {
 					chdir ( $vendor );
-					$this->println ( "Directory: " . $vendor );
+					self::println ( "Directory: " . $vendor );
 					$libs = array_filter ( glob ( '*' ), 'is_dir' );
-					$this->println ( "Directorirs: " . implode ( ",", $libs ) );
+					self::println ( "Directorirs: " . implode ( ",", $libs ) );
 					foreach ( $libs as $lib ) {
 						if (! ($vendor == "rudrax" && $lib == "application")) {
-							$this->drawLine ();
+							self::drawLine ();
 							chdir ( $lib );
-							$this->println ( "\nPackage: " . $vendor . "/" . $lib );
+							self::println ( "\nPackage: " . $vendor . "/" . $lib );
 							$lib_ini_file = "../../../build/deploy/" . $vendor . "-" . $lib . ".ini";
 							$config [$server] ['path'] = $host_path . "lib/" . $vendor . "/" . $lib;
 							$config [$server] ['pass'] = $password;
 							$this->write_ini_file ( $config, $lib_ini_file, true );
 							$this->create_remote ( $config [$server] );
-							$this->println ( "Executing: " . "php " . $prog_dir . "git-deploy " . $lib_ini_file );
+							self::println ( "Executing: " . "php " . $prog_dir . "git-deploy " . $lib_ini_file );
 							passthru ( "php " . $prog_dir . "/git-deploy " . $lib_ini_file );
 							unlink ( $lib_ini_file );
 							chdir ( ".." );
@@ -111,17 +111,17 @@ class App {
 			}
 			$this->delete_dir ( "build" );
 		} catch ( Exception $e ) {
-			$this->println ( "Error: Some error in libraries uploaded" );
+			self::println ( "Error: Some error in libraries uploaded" );
 		}
 	}
-	function drawLine() {
+	public static function drawLine() {
 		echo "\n###################################################################################################\n";
 	}
-	function println($msg) {
+	public static function println($msg) {
 		Helpers::logmessage($msg);
 	}
 	function create_remote($config, $path = null) {
-		$this->println ( "Creating Remote : " . $config ['path'] );
+		self::println ( "Creating Remote : " . $config ['path'] );
 		// set up basic connection
 		$conn_id = ftp_connect ( $config ['host'] );
 		// login with username and password
@@ -136,12 +136,12 @@ class App {
 			foreach ( $folders as $key => $folder ) {
 				$new_path = $new_path . $folder;
 				if (! ftp_mkdir ( $conn_id, $new_path )) {
-					$this->println ( "Error: There might be problem while creating " . $new_path );
+					self::println ( "Error: There might be problem while creating " . $new_path );
 				}
 				$new_path = $new_path . "/";
 			}
 		} catch ( Exception $e ) {
-			$this->println ( "Error: There was a problem while creating " . $mypath );
+			self::println ( "Error: There was a problem while creating " . $mypath );
 		}
 		// close the connection
 		ftp_close ( $conn_id );
@@ -227,9 +227,15 @@ function process_error_backtrace($errno, $errstr, $errfile, $errline, $errcontex
 	$trace = array_reverse ( debug_backtrace () );
 	array_pop ( $trace );
 	if (php_sapi_name () == 'cli') {
-		echo 'Backtrace from ' . $type . ' \'' . $errstr . '\' at ' . $errfile . ' ' . $errline . ':' . "\n";
-		foreach ( $trace as $item )
-			echo '  ' . (isset ( $item ['file'] ) ? $item ['file'] : '<unknown file>') . ' ' . (isset ( $item ['line'] ) ? $item ['line'] : '<unknown line>') . ' calling ' . $item ['function'] . '()' . "\n";
+		if($type=="warning" && strpos($errstr, "create directory: File exists")!=false){
+			App::println("Warning: Cannot Create Directory, Exists");
+		} else {
+			App::drawLine();
+			echo 'Backtrace from ' . $type . ' \'' . $errstr . '\' at ' . $errfile . ' ' . $errline . ':' . "\n";
+			foreach ( $trace as $item )
+				echo '  ' . (isset ( $item ['file'] ) ? $item ['file'] : '<unknown file>') . ' ' . (isset ( $item ['line'] ) ? $item ['line'] : '<unknown line>') . ' calling ' . $item ['function'] . '()' . "\n";
+			App::drawLine();			
+		}
 	} else {
 		echo '<p class="error_backtrace">' . "\n";
 		echo '  Backtrace from ' . $type . ' \'' . $errstr . '\' at ' . $errfile . ' ' . $errline . ':' . "\n";
