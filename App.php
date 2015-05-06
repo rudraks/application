@@ -1,9 +1,7 @@
 <?php
-
 include_once 'tools/src/Helpers.php';
 
 use Brunodebarros\Gitdeploy\Helpers;
-
 class App {
 	function push($server = "production", $password = null) {
 		$config = parse_ini_file ( "deploy.ini", true );
@@ -94,7 +92,7 @@ class App {
 						if (! ($vendor == "rudrax" && $lib == "application")) {
 							self::drawLine ();
 							chdir ( $lib );
-							self::println ( "\nPackage: " . $vendor . "/" . $lib );
+							self::println ( "Package: " . $vendor . "/" . $lib );
 							$lib_ini_file = "../../../build/deploy/" . $vendor . "-" . $lib . ".ini";
 							$config [$server] ['path'] = $host_path . "lib/" . $vendor . "/" . $lib;
 							$config [$server] ['pass'] = $password;
@@ -118,7 +116,7 @@ class App {
 		echo "\n###################################################################################################\n";
 	}
 	public static function println($msg) {
-		Helpers::logmessage($msg);
+		Helpers::logmessage ( $msg );
 	}
 	function create_remote($config, $path = null) {
 		self::println ( "Creating Remote : " . $config ['path'] );
@@ -135,7 +133,7 @@ class App {
 			$new_path = "";
 			foreach ( $folders as $key => $folder ) {
 				$new_path = $new_path . $folder;
-				if (! ftp_mkdir ( $conn_id, $new_path )) {
+				if (!ftp_is_dir($conn_id, $new_path) && ! ftp_mkdir ( $conn_id, $new_path )) {
 					self::println ( "Error: There might be problem while creating " . $new_path );
 				}
 				$new_path = $new_path . "/";
@@ -207,6 +205,18 @@ class App {
 		return false;
 	}
 }
+
+function ftp_is_dir($ftp, $dir) {
+	$pushd = ftp_pwd ( $ftp );
+
+	if ($pushd !== false && @ftp_chdir ( $ftp, $dir )) {
+		ftp_chdir ( $ftp, $pushd );
+		return true;
+	}
+
+	return false;
+}
+
 function process_error_backtrace($errno, $errstr, $errfile, $errline, $errcontext) {
 	if (! (error_reporting () & $errno))
 		return;
@@ -227,14 +237,14 @@ function process_error_backtrace($errno, $errstr, $errfile, $errline, $errcontex
 	$trace = array_reverse ( debug_backtrace () );
 	array_pop ( $trace );
 	if (php_sapi_name () == 'cli') {
-		if($type=="warning" && strpos($errstr, "create directory: File exists")!=false){
-			App::println("Warning: Cannot Create Directory, Exists");
+		if ($type == "warning" && strpos ( $errstr, "create directory: File exists" ) != false) {
+			App::println ( "Warning: Cannot Create Directory, Exists" );
 		} else {
-			App::drawLine();
+			App::drawLine ();
 			echo 'Backtrace from ' . $type . ' \'' . $errstr . '\' at ' . $errfile . ' ' . $errline . ':' . "\n";
 			foreach ( $trace as $item )
 				echo '  ' . (isset ( $item ['file'] ) ? $item ['file'] : '<unknown file>') . ' ' . (isset ( $item ['line'] ) ? $item ['line'] : '<unknown line>') . ' calling ' . $item ['function'] . '()' . "\n";
-			App::drawLine();			
+			App::drawLine ();
 		}
 	} else {
 		echo '<p class="error_backtrace">' . "\n";
