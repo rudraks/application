@@ -128,15 +128,16 @@ class App {
 		$mypath = ($path != null) ? $path : $config ['path'];
 		// try to create the directory $dir
 		try {
-			
-			$folders = explode ( "/", $mypath );
-			$new_path = "";
-			foreach ( $folders as $key => $folder ) {
-				$new_path = $new_path . $folder;
-				if (!ftp_is_dir($conn_id, $new_path) && ! ftp_mkdir ( $conn_id, $new_path )) {
-					self::println ( "Error: There might be problem while creating " . $new_path );
+			if(!ftp_is_dir($conn_id,$mypath)){
+				$folders = explode ( "/", $mypath );
+				$new_path = "";
+				foreach ( $folders as $key => $folder ) {
+					$new_path = $new_path . $folder;
+					if (!ftp_is_dir($conn_id, $new_path) && ! ftp_mkdir ( $conn_id, $new_path )) {
+						self::println ( "Error: There might be problem while creating " . $new_path );
+					}
+					$new_path = $new_path . "/";
 				}
-				$new_path = $new_path . "/";
 			}
 		} catch ( Exception $e ) {
 			self::println ( "Error: There was a problem while creating " . $mypath );
