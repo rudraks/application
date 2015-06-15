@@ -47,8 +47,8 @@ class App {
 				'build' 
 		);
 		$config [$server] ["ignore_files"] = array (
-				'lib/*',
-				'build/*' 
+				'lib/*'
+				//,'build/*' 
 		);
 		$config [$server] ["pass"] = $password;
 		
