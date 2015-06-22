@@ -43,14 +43,18 @@ class App {
 		}
 		
 		// Set Default Configs for main directory
-		$config [$server] ["clean_directories"] = array (
+		$config [$server] ["clean_directories"] = array_merge($config [$server] ["clean_directories"],array (
 				'build' 
-		);
-		$config [$server] ["ignore_files"] = array (
+		));
+		$config [$server] ["ignore_files"] = array_merge($config [$server] ["ignore_files"],array (
 				'lib/*'
 				//,'build/*' 
-		);
+		));
 		$config [$server] ["pass"] = $password;
+		
+		self::drawLine ();
+		print_r($config [$server]);
+		self::drawLine ();
 		
 		// Empty build folder
 		// $this->delete_dir("build");
@@ -153,12 +157,12 @@ class App {
 				foreach ( $elem as $key2 => $elem2 ) {
 					if (is_array ( $elem2 )) {
 						for($i = 0; $i < count ( $elem2 ); $i ++) {
-							$content .= $key2 . "[] = \"" . $elem2 [$i] . "\"\n";
+							$content .= $key2 . "[] = " . $elem2 [$i] . "\n";
 						}
 					} else if ($elem2 == "")
 						$content .= $key2 . " = \n";
 					else
-						$content .= $key2 . " = \"" . $elem2 . "\"\n";
+						$content .= $key2 . " = " . $elem2 . "\n";
 				}
 			}
 		} else {
