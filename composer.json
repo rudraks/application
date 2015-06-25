@@ -11,7 +11,7 @@
 	"autoload": {
 		"psr-4": {
 			"RudraX\\": "",
-			"RudraX\\Tasks": "tasks"
+			"RudraX\\Tasks\\": "tasks"
 		}
 	},
 	"require-dev": {
