@@ -12,6 +12,7 @@
 		}
 	},
 	"require-dev": {
-		"codegyre/robo": "*"
+		"codegyre/robo": "*",
+		"tivie/htaccess-parser": "*"
 	}
 }
