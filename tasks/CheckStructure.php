@@ -1,5 +1,5 @@
 <?php
-namespace RudraX\Task;
+namespace RudraX\Tasks;
 
 trait CheckStructure {
 	function taskCheckStructure($path) {
@@ -7,8 +7,11 @@ trait CheckStructure {
 	}
 }
 
-class CheckStructureTask implements Robo\Contract\TaskInterface {
+class CheckStructureTask implements \Robo\Contract\TaskInterface {
 	// configuration params
+	
+	use \Robo\Task\FileSystem\loadTasks;
+	
 	protected $path;
 	protected $to;
 	function __construct($path) {
@@ -22,7 +25,10 @@ class CheckStructureTask implements Robo\Contract\TaskInterface {
 	
 	// must implement Run
 	function run() {
-		$this->_exec('ps aux');
+		passthru("sudo mkdir build");
+		passthru("sudo chmod -R 0777 build");
+		//$this->taskFileSystemStack()->mkdir('build');
+		$this->taskCleanDir(['build'])->run();
 	}
 }
 ?>
