@@ -5,7 +5,9 @@
 	"keywords": ["rudra", "API", "controller", "smarty"],
 	"license": "MIT",
 
-	"require": {},
+	"require": {
+		"tivie/htaccess-parser": "*"
+	},
 	"autoload": {
 		"psr-4": {
 			"RudraX\\": ""
@@ -13,6 +15,5 @@
 	},
 	"require-dev": {
 		"codegyre/robo": "*",
-		"tivie/htaccess-parser": "*"
 	}
 }
