@@ -10,5 +10,8 @@
 		"psr-4": {
 			"RudraX\\": ""
 		}
+	},
+	"require-dev": {
+		"codegyre/robo": "*"
 	}
 }
