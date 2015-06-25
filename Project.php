@@ -41,7 +41,7 @@ class Project {
 			}
 			
 			foreach ( $entries as $entry ) {
-				if (isset ( $entriesOk [$entry] )) {
+				if (!isset ( $entriesOk [$entry] )) {
 					Util::log ( "New Entry ::" . $entry );
 					fwrite ( $handle, "\n".$entry);
 				}
