@@ -9,10 +9,15 @@ class Project {
 		self::copyRobo ();
 		self::updateGitIgnore ();
 	}
+	
+	public static function checkStructure(){
+		
+	}
+	
 	public static function copyRobo() {
 		if (file_exists ( "lib/codegyre/robo/robo" )) {
-			// passthru("sudo cp lib/codegyre/robo/robo robo");
-			passthru ( "sudo chmod +x lib/rudrax/application/robo.php && cp lib/rudrax/application/robo.php robo" );
+			copy("lib/rudrax/application/robo.php","robo");
+			chmod("robo", 0777);
 			return true;
 		} else {
 			Util::error ( "Composer package codegyre/robo does not exits, make sure it does" );
