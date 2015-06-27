@@ -1,6 +1,10 @@
 <?php
 namespace RudraX\Tasks;
 
+use RudraX\Utils\ResourceUtil;
+use RudraX\Utils\FileUtil;
+use RudraX\Utils\Console;
+
 trait CheckStructure {
 	function taskCheckStructure($path) {
 		return new CheckStructureTask ( $path );
@@ -25,10 +29,13 @@ class CheckStructureTask implements \Robo\Contract\TaskInterface {
 	
 	// must implement Run
 	function run() {
-		passthru("sudo mkdir build");
-		passthru("sudo chmod -R 0777 build");
-		//$this->taskFileSystemStack()->mkdir('build');
-		$this->taskCleanDir(['build'])->run();
+		try{
+			$this->taskCleanDir(['build'])->run();
+		} catch (\Exception $e){
+			Console::error("Cannot Clean Directory");
+		}
+		ResourceUtil::build_js();
+		passthru("compass compile");
 	}
 }
 ?>

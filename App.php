@@ -88,7 +88,6 @@ class App {
 			
 			$host_path = $config [$server] ['path'];
 			foreach ( $vendors as $vendor ) {
-				if ($vendor != "composer") {
 					chdir ( $vendor );
 					self::println ( "Directory: " . $vendor );
 					$libs = array_filter ( glob ( '*' ), 'is_dir' );
@@ -110,7 +109,6 @@ class App {
 						}
 					}
 					chdir ( ".." );
-				}
 			}
 			$this->delete_dir ( "build" );
 		} catch ( Exception $e ) {
