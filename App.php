@@ -1,8 +1,12 @@
 <?php
+
+
 include_once 'tools/src/Helpers.php';
 
 use Brunodebarros\Gitdeploy\Helpers;
+
 class App {
+	
 	function push($server = "production", $password = null) {
 		$config = parse_ini_file ( "deploy.ini", true );
 		$prog_dir = realpath ( dirname ( __FILE__ ) ) . "/";
@@ -19,6 +23,7 @@ class App {
 		
 		passthru ( "php " . $prog_dir . "/git-deploy deploy.ini" );
 	}
+	
 	function deploy($server = "production", $password = null) {
 		$config = parse_ini_file ( "deploy.ini", true );
 		$prog_dir = realpath ( dirname ( __FILE__ ) ) . "/";
@@ -44,12 +49,15 @@ class App {
 		}
 		
 		// Set Default Configs for main directory
-		$config [$server] ["clean_directories"] = array_merge($config [$server] ["clean_directories"],array (
-				'build' 
-		));
+		//$config [$server] ["clean_directories"] = array_merge($config [$server] ["clean_directories"],array (
+		//		'build' 
+		//));
 		$config [$server] ["ignore_files"] = array_merge($config [$server] ["ignore_files"],array (
 				'lib/*'
 				//,'build/*' 
+		));
+		$config [$server] ["upload_untracked"] = array_merge($config [$server] ["upload_untracked"],array (
+				'lib/composer','lib/autoload.php'
 		));
 		$config [$server] ["pass"] = $password;
 		
@@ -74,13 +82,14 @@ class App {
 		// No need o delete lib and buld in library cud be harmful
 		unset ( $config [$server] ["clean_directories"] );
 		unset ( $config [$server] ["ignore_files"] );
+		unset ( $config [$server] ["upload_untracked"] );
+		
 		
 		// Upload Libraries..
 		chdir ( "lib" );
 		$vendors = array_filter ( glob ( '*' ), 'is_dir' );
 		self::println ( "Libraries to upload:" );
 		print_r ( $vendors );
-		
 		try {
 			$vendors = array_filter ( glob ( '*' ), 'is_dir' );
 			self::println ( "Libraries to upload:" );

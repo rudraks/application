@@ -6,7 +6,9 @@
 	"license": "MIT",
 
 	"require": {
-		"tivie/htaccess-parser": "*"
+	    "rudrax/utils" : ">=0.0.0",
+		"tivie/htaccess-parser": "*",
+		"codegyre/robo": "*"
 	},
 	"autoload": {
 		"psr-4": {
@@ -15,6 +17,5 @@
 		}
 	},
 	"require-dev": {
-		"codegyre/robo": "*"
 	}
 }
