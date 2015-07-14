@@ -6,9 +6,10 @@ use RudraX\Utils\ResourceUtil;
 use RudraX\Utils\FileUtil;
 use RudraX\Utils\Console;
 use RudraX\Server;
+use RudraX\Utils\ModuleUtil;
 
 trait Builder {
-	function taskBuilder($config=null) {
+	function taskBuilder($config = null) {
 		return new BuilderTask ( $config );
 	}
 }
@@ -38,6 +39,7 @@ class BuilderTask implements \Robo\Contract\TaskInterface {
 	}
 	function scan() {
 		ResourceUtil::scan_modules ();
+		ModuleUtil::scan_modules ();
 		return $this;
 	}
 	function build($buildConfig = array()) {
