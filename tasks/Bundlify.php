@@ -2,14 +2,14 @@
 
 namespace RudraX\Tasks;
 
-use RudraX\Utils\ResourceUtil;
 use RudraX\Utils\FileUtil;
 use RudraX\Utils\Console;
 use RudraX\Server;
+use RudraX\Utils\ModuleUtil;
 
-trait Builder {
-	function taskBuilder($config = null) {
-		return new BuilderTask ( $config );
+trait Bundlify {
+	function taskBundlify($config = null) {
+		return new BundlifyTask ( $config );
 	}
 }
 /**
@@ -17,14 +17,19 @@ trait Builder {
  * @author Lalit Tanwar
  *        
  */
-class BuilderTask implements \Robo\Contract\TaskInterface {
+class BundlifyTask implements \Robo\Contract\TaskInterface {
 	// configuration params
 	
 	use \Robo\Task\FileSystem\loadTasks;
 	protected $config;
 	protected $to;
 	function __construct($config) {
-		$this->config = $config;
+		$this->config = array_merge_recursive(array(
+				"preBundles" =>  array("webmodules/bootloader"),
+				"dir" => array("lib","resources"),
+				"dest" => "build/dist",
+				"resourcesJson" => "resources/resource.json"
+		),$config);
 	}
 	function clean() {
 		try {
@@ -37,11 +42,16 @@ class BuilderTask implements \Robo\Contract\TaskInterface {
 		return $this;
 	}
 	function scan() {
-		ResourceUtil::scan_modules ();
+		ModuleUtil::scan_modules ();
 		return $this;
 	}
 	function build($buildConfig = array()) {
-		ResourceUtil::build_js ( $buildConfig );
+		ModuleUtil::build_js ( $buildConfig );
+		return $this;
+	}
+	function bundlify($bundles=null) {
+		ModuleUtil::scan_modules ($this->config["dir"],$this->config["resourcesJson"]);
+		ModuleUtil::bundlify ($this->config["preBundles"]);
 		return $this;
 	}
 	function compile() {
